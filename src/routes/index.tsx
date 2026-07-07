@@ -856,13 +856,13 @@ function ProjectCard({ p, i }: { p: Project; i: number }) {
           </div>
           <div className="mt-7 flex flex-wrap gap-2">
             <a
-              href="#"
+              href={p.github}
               className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
             >
               <FiGithub /> GitHub
             </a>
             <a
-              href="#"
+              href={p.live}
               className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium transition hover:bg-secondary"
             >
               <FiExternalLink /> Live Demo
