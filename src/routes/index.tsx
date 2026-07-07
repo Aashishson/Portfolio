@@ -29,6 +29,7 @@ import {
   SiGithub,
   SiLinux,
   SiOpenjdk,
+  SiLeetcode,
 } from "react-icons/si";
 import portrait from "@/assets/aashish-portrait.jpg";
 
@@ -386,6 +387,11 @@ function Hero() {
                   href: "https://www.linkedin.com/in/aashish-soni-21184830b/",
                   Icon: FiLinkedin,
                   label: "LinkedIn",
+                },
+                {
+                  href: "https://leetcode.com/u/Aashishssj/",
+                  Icon: SiLeetcode,
+                  label: "LeetCode",
                 },
                 { href: "mailto:theaashishsoni@gmail.com", Icon: FiMail, label: "Email" },
               ].map(({ href, Icon, label }) => (
