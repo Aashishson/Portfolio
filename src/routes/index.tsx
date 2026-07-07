@@ -811,7 +811,7 @@ const PROJECTS: Project[] = [
     stack: ["MongoDB", "Express.js", "React.js", "Node.js"],
     accent: "from-neutral-800 to-neutral-500",
     github: "https://github.com/Bawejakartik/Invoice_Generator",
-    live: "hhttps://invoice-generator-five-coral.vercel.app",
+    live: "https://invoice-generator-five-coral.vercel.app",
   },
 ];
 
