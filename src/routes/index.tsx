@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion, useScroll, useSpring, useInView, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useSpring,
+  useTransform,
+  useInView,
+  AnimatePresence,
+} from "framer-motion";
 import {
   FiGithub,
   FiLinkedin,
@@ -112,7 +119,7 @@ function Nav() {
           if (e.isIntersecting) setActive(e.target.id);
         });
       },
-      { rootMargin: "-40% 0px -55% 0px" }
+      { rootMargin: "-40% 0px -55% 0px" },
     );
     ["home", ...NAV.map((n) => n.id)].forEach((id) => {
       const el = document.getElementById(id);
@@ -185,7 +192,15 @@ function Nav() {
 }
 
 /* ------------------------------ Utilities ------------------------------ */
-function Reveal({ children, delay = 0, y = 24 }: { children: ReactNode; delay?: number; y?: number }) {
+function Reveal({
+  children,
+  delay = 0,
+  y = 24,
+}: {
+  children: ReactNode;
+  delay?: number;
+  y?: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   return (
@@ -200,7 +215,15 @@ function Reveal({ children, delay = 0, y = 24 }: { children: ReactNode; delay?: 
   );
 }
 
-function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle?: string }) {
+function SectionHeader({
+  eyebrow,
+  title,
+  subtitle,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+}) {
   return (
     <div className="mb-14 max-w-3xl">
       <Reveal>
@@ -247,12 +270,7 @@ function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
 }
 
 /* ------------------------------ Hero ------------------------------ */
-const ROLES = [
-  "Full-Stack MERN Developer",
-  "Software Engineer",
-  "AI Enthusiast",
-  "Problem Solver",
-];
+const ROLES = ["Full-Stack MERN Developer", "Software Engineer", "AI Enthusiast", "Problem Solver"];
 
 function Typewriter() {
   const [i, setI] = useState(0);
@@ -312,8 +330,41 @@ function Particles() {
   );
 }
 
+/**
+ * Tracks whether the viewport is currently "mobile" width.
+ * Used to fully disable the hero image parallax on small screens,
+ * where the image sits stacked above the text (order-1) and would
+ * otherwise visually drift down over the copy while scrolling.
+ */
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 function Hero() {
   const { scrollY } = useScroll();
+  const isMobile = useIsMobile();
+
+  // Raw spring-smoothed scroll value.
+  const rawY = useSpring(scrollY, { stiffness: 60, damping: 20 });
+
+  // Parallax offset: disabled entirely on mobile (prevents the image from
+  // drifting down over the stacked text/content below it), and clamped on
+  // desktop so it never drifts far enough to overlap anything either.
+  const parallaxY = useTransform(rawY, (v) => (isMobile ? 0 : Math.min(v * 0.35, 70)));
+
+  // Fade the entire portrait block out as the user scrolls through the
+  // hero section, so it disappears smoothly instead of abruptly / instead
+  // of ever being able to visually sit on top of content beneath it.
+  const imageOpacity = useTransform(scrollY, [0, 260, 460], [1, 1, 0]);
+  const imageScale = useTransform(scrollY, [0, 460], [1, 0.94]);
+
   return (
     <section id="home" className="relative min-h-screen overflow-hidden pt-28">
       <Particles />
@@ -410,43 +461,47 @@ function Hero() {
           </Reveal>
         </div>
 
+        {/* Outer wrapper: scroll-linked fade + scale only (no entrance conflict) */}
         <motion.div
           className="order-1 md:order-2"
-          initial={{ opacity: 0, scale: 0.94 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          style={{
-            y: useSpring(scrollY, { stiffness: 60, damping: 20 }),
-          }}
+          style={{ opacity: imageOpacity, scale: imageScale }}
         >
-          <div className="relative mx-auto aspect-[4/5] w-full max-w-md">
-            <div
-              aria-hidden
-              className="absolute -inset-6 rounded-[3rem] bg-gradient-to-b from-foreground/10 to-transparent blur-2xl"
-            />
-            <div className="glass relative h-full w-full overflow-hidden rounded-[2.5rem] shadow-elevated">
-              <img
-                src={portrait}
-                alt="Portrait of Aashish Soni"
-                width={1024}
-                height={1280}
-                className="h-full w-full object-cover"
-              />
+          {/* Inner wrapper: entrance animation + (desktop-only, clamped) parallax */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            style={{ y: parallaxY }}
+          >
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-md">
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20"
+                className="absolute -inset-6 rounded-[3rem] bg-gradient-to-b from-foreground/10 to-transparent blur-2xl"
               />
-              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-2xl border border-border bg-background/70 p-3 backdrop-blur">
-                <div>
-                  <p className="text-sm font-semibold">Aashish Soni</p>
-                  <p className="text-xs text-muted-foreground">Bhiwani, India</p>
+              <div className="glass relative h-full w-full overflow-hidden rounded-[2.5rem] shadow-elevated">
+                <img
+                  src={portrait}
+                  alt="Portrait of Aashish Soni"
+                  width={1024}
+                  height={1280}
+                  className="h-full w-full object-cover"
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20"
+                />
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-2xl border border-border bg-background/70 p-3 backdrop-blur">
+                  <div>
+                    <p className="text-sm font-semibold">Aashish Soni</p>
+                    <p className="text-xs text-muted-foreground">Bhiwani, India</p>
+                  </div>
+                  <span className="rounded-full bg-primary px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-primary-foreground">
+                    MERN
+                  </span>
                 </div>
-                <span className="rounded-full bg-primary px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-primary-foreground">
-                  MERN
-                </span>
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
 
@@ -574,9 +629,7 @@ function Education() {
                   </span>
                   <span className="text-sm text-muted-foreground">CGPA · 7.6 / 10</span>
                 </div>
-                <h3 className="mt-4 text-2xl font-semibold">
-                  Bachelor of Technology (B.Tech)
-                </h3>
+                <h3 className="mt-4 text-2xl font-semibold">Bachelor of Technology (B.Tech)</h3>
                 <p className="mt-1 text-muted-foreground">
                   The Technological Institute of Textile &amp; Sciences
                 </p>
@@ -825,7 +878,9 @@ function ProjectCard({ p, i }: { p: Project; i: number }) {
   return (
     <Reveal delay={i * 0.08}>
       <article className="group overflow-hidden rounded-[2rem] border border-border bg-surface-elevated transition hover:shadow-elevated">
-        <div className={`relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br ${p.accent}`}>
+        <div
+          className={`relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br ${p.accent}`}
+        >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
           <div className="absolute inset-0 flex items-end p-8">
             <div className="text-white">
@@ -947,12 +1002,21 @@ function Contact() {
     }
   };
 
-
   const details = [
-    { Icon: FiMail, label: "Email", value: "theaashishsoni@gmail.com", href: "mailto:theaashishsoni@gmail.com" },
+    {
+      Icon: FiMail,
+      label: "Email",
+      value: "theaashishsoni@gmail.com",
+      href: "mailto:theaashishsoni@gmail.com",
+    },
     { Icon: FiPhone, label: "Phone", value: "+91 90348 36156", href: "tel:+919034836156" },
     { Icon: FiMapPin, label: "Location", value: "Bhiwani, Haryana, India" },
-    { Icon: FiLinkedin, label: "LinkedIn", value: "aashish-soni", href: "https://www.linkedin.com/in/aashish-soni-21184830b/" },
+    {
+      Icon: FiLinkedin,
+      label: "LinkedIn",
+      value: "aashish-soni",
+      href: "https://www.linkedin.com/in/aashish-soni-21184830b/",
+    },
     { Icon: FiGithub, label: "GitHub", value: "Aashishson", href: "https://github.com/Aashishson" },
   ];
 
@@ -1023,7 +1087,13 @@ function Contact() {
                 disabled={sending}
                 className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
               >
-                {sending ? "Sending..." : (<>Send Message <FiArrowRight /></>)}
+                {sending ? (
+                  "Sending..."
+                ) : (
+                  <>
+                    Send Message <FiArrowRight />
+                  </>
+                )}
               </button>
 
               <AnimatePresence>
