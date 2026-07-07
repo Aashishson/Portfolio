@@ -350,14 +350,14 @@ function Hero() {
           </Reveal>
           <Reveal delay={0.2}>
             <p className="mt-6 max-w-lg text-base text-muted-foreground sm:text-lg">
-              I build scalable, efficient, and user-friendly web applications with the MERN
-              stack — with a growing passion for AI and modern software engineering.
+              I build scalable, efficient, and user-friendly web applications with the MERN stack —
+              with a growing passion for AI and modern software engineering.
             </p>
           </Reveal>
           <Reveal delay={0.25}>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
-                href="https://drive.google.com/file/d/1r2n0S4lG1crTufompjC1qxi1B08huKrF/view?usp=drive_link"
+                href="https://drive.google.com/file/d/1yJXPq-yIChyE_Ga_3HgTaN0-oNVo7K__/view?usp=sharing"
                 target="_blank"
                 rel="noreferrer"
                 className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition hover:scale-[1.02] hover:shadow-lg"
@@ -774,6 +774,8 @@ type Project = {
   features: string[];
   stack: string[];
   accent: string;
+  github: string;
+  live: string;
 };
 const PROJECTS: Project[] = [
   {
@@ -791,6 +793,8 @@ const PROJECTS: Project[] = [
     ],
     stack: ["MongoDB", "Express.js", "React.js", "Node.js", "Gemini AI"],
     accent: "from-neutral-900 to-neutral-600",
+    github: "https://github.com/Aashishson/HelpX",
+    live: "https://help-x-three.vercel.app",
   },
   {
     name: "Invoice Generator",
@@ -806,6 +810,8 @@ const PROJECTS: Project[] = [
     ],
     stack: ["MongoDB", "Express.js", "React.js", "Node.js"],
     accent: "from-neutral-800 to-neutral-500",
+    github: "https://github.com/Bawejakartik/Invoice_Generator",
+    live: "hhttps://invoice-generator-five-coral.vercel.app",
   },
 ];
 
